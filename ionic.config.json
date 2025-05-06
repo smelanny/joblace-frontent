@@ -1,0 +1,8 @@
+{
+  "name": "joblace_frontent",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "vue-vite",
+  "id": "87c2683a"
+}
