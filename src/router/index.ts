@@ -3,12 +3,20 @@ import { RouteRecordRaw } from 'vue-router';
 
 const routes: Array<RouteRecordRaw> = [
   {
-    path: '',
-    redirect: '/folder/Inbox'
+    path: '/',
+    component: () => import('../views/HomePage.vue')
   },
   {
     path: '/folder/:id',
     component: () => import ('../views/FolderPage.vue')
+  },
+  {
+    path: '/job/:id',
+    component: () => import('../views/JobDetailPage.vue')
+  },
+  {
+    path: '/company',
+    component: () => import('../views/CompanyDashboard.vue')
   }
 ]
 
