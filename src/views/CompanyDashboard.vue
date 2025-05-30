@@ -6,7 +6,7 @@
           <ion-button fill="clear" class="back-btn" @click="$router.back()">
             <ion-icon name="chevron-back-outline"></ion-icon>
           </ion-button>
-          <h1 class="company-title">Google Jobs</h1>
+          <h1 class="company-title">{{ empresa?.nombre || 'Empresa' }}</h1>
           <div style="width:40px;"></div>
         </div>
       </ion-toolbar>
@@ -15,37 +15,37 @@
       <div class="company-summary">
         <div class="summary-item">
           <span class="summary-label">Open</span>
-          <span class="summary-value">140</span>
+          <span class="summary-value">0</span>
         </div>
         <div class="summary-logo">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" alt="logo" />
-          <div class="summary-company">Google</div>
+          <img v-if="empresa?.logo_url" :src="empresa.logo_url" alt="logo" />
+          <div class="summary-company">{{ empresa?.nombre || '' }}</div>
         </div>
         <div class="summary-item">
           <span class="summary-label">Hired</span>
-          <span class="summary-value">176K</span>
+          <span class="summary-value">0</span>
         </div>
       </div>
-      <div class="solicitudes-section">
-        <h2 class="solicitudes-title">Solicitudes</h2>
-        <div class="solicitudes-list">
-          <div v-for="(sol, idx) in solicitudes" :key="idx" class="solicitud-card">
-            <img :src="sol.logo" class="solicitud-logo" />
-            <div class="solicitud-info">
-              <div class="solicitud-puesto-row">
-                <span class="solicitud-puesto">{{ sol.puesto }}</span>
-                <span class="solicitud-estado" :class="sol.estado.toLowerCase()">{{ sol.estado }}</span>
-              </div>
-              <div class="solicitud-detalles">
-                <span class="solicitud-nombre">{{ sol.nombre }}</span>
-                <span class="solicitud-ubicacion">{{ sol.ubicacion }}</span>
-              </div>
-            </div>
+      <div class="puestos-header">
+        <h2 class="puestos-title">Puestos publicados</h2>
+        <ion-button size="small" class="consultar-btn" @click="consultarPostulaciones">
+          Consultar postulaciones recibidas
+        </ion-button>
+      </div>
+      <div class="puestos-publicados-list">
+        <div v-if="ofertas.length === 0" class="puestos-vacio">No hay puestos publicados aún.</div>
+        <div v-for="oferta in ofertas" :key="oferta.id" class="puesto-card">
+          <div class="puesto-titulo">{{ oferta.titulo_puesto }}</div>
+          <div class="puesto-detalles">
+            <span>{{ oferta.modalidad }}</span> ·
+            <span>{{ oferta.tipo_jornada }}</span> ·
+            <span>{{ oferta.ubicacion }}</span>
           </div>
+          <div class="puesto-salario">Salario: {{ oferta.salario_estimado }}</div>
+          <div class="puesto-descripcion">{{ oferta.descripcion_puesto }}</div>
         </div>
-        <div class="mostrar-todo">Mostrar todo</div>
       </div>
-      <ion-button expand="block" class="publicar-btn" @click="publicarPuesto">PUBLICAR PUESTO</ion-button>
+      <ion-button expand="block" class="publicar-btn" @click="$router.push('/publicar-puesto')">PUBLICAR PUESTO</ion-button>
     </ion-content>
     <ion-footer>
       <ion-toolbar class="footer-toolbar">
@@ -69,35 +69,50 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted } from 'vue';
 import { IonPage, IonHeader, IonToolbar, IonContent, IonFooter, IonButton, IonIcon, IonSegment, IonSegmentButton } from '@ionic/vue';
 
-const solicitudes = [
-  {
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg',
-    puesto: 'Product Designer',
-    nombre: 'Frank Buzano',
-    ubicacion: 'San José, CR',
-    estado: 'Pendiente',
-  },
-  {
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg',
-    puesto: 'UX Designer',
-    nombre: 'Kit Connor',
-    ubicacion: 'Heredia, CR',
-    estado: 'Aceptado',
-  },
-  {
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg',
-    puesto: 'Web Developer',
-    nombre: 'Carlos Jimenez',
-    ubicacion: 'Florida, US',
-    estado: 'Rechazado',
-  },
-];
+const empresa = ref<any>(null);
+const ofertas = ref<any[]>([]);
 
-function publicarPuesto() {
-  alert('Funcionalidad de publicación próximamente.');
+function consultarPostulaciones() {
+  alert('Funcionalidad de consulta de postulaciones próximamente.');
 }
+
+onMounted(async () => {
+  const user_id = localStorage.getItem('user_id');
+  const token = localStorage.getItem('token');
+  if (!user_id || !token) return;
+  try {
+    const resp = await fetch(`http://localhost:8081/api/usuarios/${user_id}/representaciones`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json'
+      }
+    });
+    const data = await resp.json();
+    if (Array.isArray(data) && data.length > 0 && data[0].empresa) {
+      empresa.value = data[0].empresa;
+    } else if (Array.isArray(data) && data.length > 0) {
+      empresa.value = data[0];
+    }
+    // Obtener ofertas de empleo de la empresa
+    if (empresa.value?.id) {
+      const ofertasResp = await fetch('http://localhost:8081/api/ofertas', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
+      });
+      const ofertasData = await ofertasResp.json();
+      if (Array.isArray(ofertasData)) {
+        ofertas.value = ofertasData.filter(o => o.empresa_id === empresa.value.id);
+      }
+    }
+  } catch (e) {
+    // Error al obtener las ofertas de empleo
+  }
+});
 </script>
 
 <style scoped>
@@ -164,77 +179,64 @@ function publicarPuesto() {
   color: #181a2a;
   font-weight: 500;
 }
-.solicitudes-section {
+.puestos-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin: 24px 0 0 0;
   padding: 0 16px;
 }
-.solicitudes-title {
+.puestos-title {
   font-size: 20px;
   font-weight: bold;
   color: #181a2a;
-  margin-bottom: 18px;
+  margin-bottom: 0;
 }
-.solicitudes-list {
+.consultar-btn {
+  --background: #1566c3;
+  --color: #fff;
+  --border-radius: 10px;
+  font-size: 14px;
+  font-weight: bold;
+  height: 32px;
+  margin-left: 12px;
+}
+.puestos-publicados-list {
+  margin-top: 24px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
 }
-.solicitud-card {
+.puesto-card {
   background: #fff;
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  padding: 16px 18px;
+  border-radius: 16px;
   box-shadow: 0 2px 12px rgba(59,108,183,0.04);
-  gap: 16px;
+  padding: 18px 18px 12px 18px;
 }
-.solicitud-logo {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: #fff;
-  object-fit: contain;
-}
-.solicitud-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.solicitud-puesto-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.solicitud-puesto {
-  font-size: 17px;
+.puesto-titulo {
+  font-size: 1.1em;
   font-weight: bold;
   color: #181a2a;
+  margin-bottom: 4px;
 }
-.solicitud-estado {
-  font-size: 15px;
-  font-weight: 500;
+.puesto-detalles {
+  color: #888;
+  font-size: 0.97em;
+  margin-bottom: 4px;
 }
-.solicitud-estado.pendiente {
-  color: #8b7cf6;
+.puesto-salario {
+  color: #1566d6;
+  font-size: 1em;
+  margin-bottom: 4px;
 }
-.solicitud-estado.aceptado {
-  color: #1ec773;
+.puesto-descripcion {
+  color: #444;
+  font-size: 0.97em;
 }
-.solicitud-estado.rechazado {
-  color: #ff3b30;
-}
-.solicitud-detalles {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  color: #8c8c8c;
-  font-size: 15px;
-}
-.mostrar-todo {
+.puestos-vacio {
   color: #b0b0b0;
-  font-size: 16px;
-  margin: 18px 0 0 8px;
+  text-align: center;
+  margin: 24px 0;
 }
 .publicar-btn {
   margin: 38px 0 0 0;
