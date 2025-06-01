@@ -2,47 +2,53 @@
   <ion-page>
     <ion-header :translucent="true" class="main-header">
       <ion-toolbar>
-        <div class="header-row">
+        <ion-buttons slot="start">
           <ion-button fill="clear" class="back-btn" @click="$router.back()">
             <ion-icon name="chevron-back-outline"></ion-icon>
           </ion-button>
-          <h1 class="company-title">{{ empresa?.nombre || 'Empresa' }}</h1>
-          <div style="width:40px;"></div>
-        </div>
+        </ion-buttons>
+        <ion-title></ion-title>
       </ion-toolbar>
     </ion-header>
-    <ion-content :fullscreen="true">
-      <div class="company-summary">
-        <div class="summary-item">
-          <span class="summary-label">Open</span>
-          <span class="summary-value">0</span>
+    <ion-content :fullscreen="true" class="company-detail-content">
+      <div class="company-summary-card">
+        <div class="company-logo-card">
+          <img :src="logoEmpresa" alt="Logo empresa" />
         </div>
-        <div class="summary-logo">
-          <img v-if="empresa?.logo_url" :src="empresa.logo_url" alt="logo" />
-          <div class="summary-company">{{ empresa?.nombre || '' }}</div>
-        </div>
-        <div class="summary-item">
-          <span class="summary-label">Hired</span>
-          <span class="summary-value">0</span>
+        <div class="company-name-card">{{ empresa?.nombre || 'Empresa' }}</div>
+        <div class="company-stats-card">
+          <div class="company-stat-card">
+            <div class="stat-label-card">Open</div>
+            <div class="stat-value-card">{{ openCount }}</div>
+          </div>
+          <div class="company-stat-card">
+            <div class="stat-label-card">Hired</div>
+            <div class="stat-value-card">{{ hiredCount }}</div>
+          </div>
         </div>
       </div>
       <div class="puestos-header">
         <h2 class="puestos-title">Puestos publicados</h2>
-        <ion-button size="small" class="consultar-btn" @click="consultarPostulaciones">
+        <ion-button size="small" class="consultar-btn-card" @click="consultarPostulaciones">
           Consultar postulaciones recibidas
         </ion-button>
       </div>
       <div class="puestos-publicados-list">
         <div v-if="ofertas.length === 0" class="puestos-vacio">No hay puestos publicados aún.</div>
         <div v-for="oferta in ofertas" :key="oferta.id" class="puesto-card">
-          <div class="puesto-titulo">{{ oferta.titulo_puesto }}</div>
-          <div class="puesto-detalles">
-            <span>{{ oferta.modalidad }}</span> ·
-            <span>{{ oferta.tipo_jornada }}</span> ·
-            <span>{{ oferta.ubicacion }}</span>
+          <div class="puesto-card-row">
+            <img :src="logoEmpresa" alt="Logo empresa" class="puesto-logo" />
+            <div class="puesto-card-info">
+              <div class="puesto-titulo">{{ oferta.titulo_puesto }}</div>
+              <div class="puesto-detalles">
+                <span>{{ oferta.modalidad }}</span> ·
+                <span>{{ oferta.tipo_jornada }}</span> ·
+                <span>{{ oferta.ubicacion }}</span>
+              </div>
+              <div class="puesto-salario">Salario: {{ oferta.salario_estimado }}</div>
+              <div class="puesto-descripcion">{{ oferta.descripcion_puesto }}</div>
+            </div>
           </div>
-          <div class="puesto-salario">Salario: {{ oferta.salario_estimado }}</div>
-          <div class="puesto-descripcion">{{ oferta.descripcion_puesto }}</div>
         </div>
       </div>
       <ion-button expand="block" class="publicar-btn" @click="$router.push('/publicar-puesto')">PUBLICAR PUESTO</ion-button>
@@ -70,13 +76,22 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { IonPage, IonHeader, IonToolbar, IonContent, IonFooter, IonButton, IonIcon, IonSegment, IonSegmentButton } from '@ionic/vue';
+import { IonPage, IonHeader, IonToolbar, IonContent, IonFooter, IonButton, IonIcon, IonSegment, IonSegmentButton, IonTitle, IonButtons } from '@ionic/vue';
+import { useRouter } from 'vue-router';
 
 const empresa = ref<any>(null);
 const ofertas = ref<any[]>([]);
+const router = useRouter();
+const logoEmpresa = ref('');
+const openCount = ref(0);
+const hiredCount = ref(0);
 
 function consultarPostulaciones() {
-  alert('Funcionalidad de consulta de postulaciones próximamente.');
+  router.push('/empresa/postulaciones');
+}
+
+function randomInt(min: number, max: number) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 onMounted(async () => {
@@ -96,6 +111,15 @@ onMounted(async () => {
     } else if (Array.isArray(data) && data.length > 0) {
       empresa.value = data[0];
     }
+    // Logo empresa
+    if (empresa.value?.logo_url) {
+      logoEmpresa.value = empresa.value.logo_url;
+    } else if (empresa.value?.nombre) {
+      logoEmpresa.value = `https://ui-avatars.com/api/?name=${encodeURIComponent(empresa.value.nombre)}&background=1566d6&color=fff`;
+    }
+    // Números random para Open y Hired
+    openCount.value = randomInt(10, 200);
+    hiredCount.value = randomInt(1, 100);
     // Obtener ofertas de empleo de la empresa
     if (empresa.value?.id) {
       const ofertasResp = await fetch('http://localhost:8081/api/ofertas', {
@@ -110,12 +134,75 @@ onMounted(async () => {
       }
     }
   } catch (e) {
-    // Error al obtener las ofertas de empleo
+    // Error 
   }
 });
 </script>
 
 <style scoped>
+.company-detail-content {
+  background: #f9f9fb;
+  /* min-height: 100vh; */
+  /* height: 100%; */
+  /* overflow-y: auto; */
+}
+.company-summary-card {
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 2px 12px rgba(59,108,183,0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 28px 18px 18px 18px;
+  margin: 24px 18px 12px 18px;
+}
+.company-logo-card img {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #fff;
+  object-fit: contain;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 8px rgba(59,108,183,0.08);
+}
+.company-name-card {
+  font-size: 1.3em;
+  font-weight: bold;
+  color: #181a2a;
+  margin-bottom: 8px;
+  text-align: center;
+}
+.company-stats-card {
+  display: flex;
+  gap: 32px;
+  justify-content: center;
+  margin-top: 4px;
+}
+.company-stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.stat-label-card {
+  color: #b0b0b0;
+  font-size: 1em;
+}
+.stat-value-card {
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #1566c3;
+}
+.consultar-btn-card {
+  --background: #1566c3;
+  --color: #fff;
+  --border-radius: 10px;
+  font-size: 14px;
+  font-weight: bold;
+  height: 32px;
+  margin: 0;
+  display: block;
+  width: max-content;
+}
 .main-header {
   --background: #f9f9fb;
   border-bottom: none;
@@ -192,15 +279,6 @@ onMounted(async () => {
   color: #181a2a;
   margin-bottom: 0;
 }
-.consultar-btn {
-  --background: #1566c3;
-  --color: #fff;
-  --border-radius: 10px;
-  font-size: 14px;
-  font-weight: bold;
-  height: 32px;
-  margin-left: 12px;
-}
 .puestos-publicados-list {
   margin-top: 24px;
   display: flex;
@@ -264,5 +342,24 @@ ion-segment-button {
 }
 ion-segment-button.ion-activated {
   --color-checked: #3b6cb7;
+}
+.puesto-card-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.puesto-logo {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #fff;
+  object-fit: contain;
+  box-shadow: 0 2px 8px rgba(59,108,183,0.08);
+}
+.puesto-card-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 </style> 

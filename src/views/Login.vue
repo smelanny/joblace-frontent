@@ -90,6 +90,15 @@ async function login() {
           } else {
             router.push('/company');
           }
+        } else if (data.usuario && data.usuario.tipo_usuario === 'candidato') {
+          const resp = await fetch(`http://localhost:8081/api/candidatos/${data.usuario.id}`, {
+            headers: { 'Authorization': `Bearer ${data.token}` }
+          });
+          if (resp.status === 404) {
+            router.push('/candidato-setup');
+          } else {
+            router.push('/home');
+          }
         } else {
           router.push('/home');
         }
