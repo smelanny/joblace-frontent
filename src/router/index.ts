@@ -43,6 +43,10 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('../views/PostulacionesEmpresa.vue')
   },
   {
+    path: '/empresa/postulaciones/:id',
+    component: () => import('../views/DetallePostulacion.vue')
+  },
+  {
     path: '/buscar',
     component: () => import('../views/BuscarOfertas.vue')
   },

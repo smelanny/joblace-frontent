@@ -34,8 +34,7 @@
         <div v-if="loading" class="loading">Cargando postulaciones...</div>
         <div v-else-if="postulaciones.length === 0" class="no-postulaciones">No hay postulaciones recibidas.</div>
         <div v-else>
-          <div v-for="post in postulaciones" :key="post.postulacion_id" class="solicitud-card">
-            <img class="solicitud-logo" :src="post.oferta?.empresa?.logo_url || defaultLogo(post.oferta?.empresa?.nombre)" />
+          <div v-for="post in postulaciones" :key="post.postulacion_id" class="solicitud-card" @click="verDetalle(post.postulacion_id)">            <img class="solicitud-logo" :src="post.oferta?.empresa?.logo_url || defaultLogo(post.oferta?.empresa?.nombre)" />
             <div class="solicitud-info">
               <div class="solicitud-titulo">{{ post.oferta?.titulo_puesto }}</div>
               <div class="solicitud-candidato">{{ post.usuario?.nombre }}</div>
@@ -136,6 +135,10 @@ async function cargarPostulaciones() {
   }
   loading.value = false;
 }
+
+const verDetalle = (id) => {
+  router.push(`/empresa/postulaciones/${id}`);
+};
 
 onMounted(cargarPostulaciones);
 </script>
