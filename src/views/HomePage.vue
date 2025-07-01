@@ -3,6 +3,8 @@
     <ion-header>
       <ion-toolbar>
         <ion-buttons slot="end">
+          <!-- Componente de notificaciones -->
+          <NotificationBell :userId="userId" />
           <ion-button @click="cerrarSesion">
             <ion-icon :icon="logOutOutline"></ion-icon>
           </ion-button>
@@ -71,6 +73,7 @@ import {
   IonIcon, IonButtons, IonButton,
   IonSearchbar, IonText
 } from '@ionic/vue';
+import NotificationBell from '../components/NotificationBell.vue';
 import {
   locationOutline, timeOutline, desktopOutline,
   cashOutline, logOutOutline, funnelOutline
@@ -83,6 +86,7 @@ const nombreUsuario = ref('');
 const busqueda = ref('');
 const mostrarCategorias = ref(false);
 const categoriasSeleccionadas = ref([]);
+const userId = ref(Number(localStorage.getItem('user_id')));
 const filtros = ref({
   modalidad: '',
   tipo_jornada: '',

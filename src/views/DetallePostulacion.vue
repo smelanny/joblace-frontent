@@ -170,7 +170,7 @@ async function cambiarEstado(nuevoEstado) {
   try {
     const token = localStorage.getItem('token');
     const response = await fetch(`http://localhost:8081/api/postulaciones/${route.params.id}/estado`, {
-      method: 'PATCH',
+      method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',

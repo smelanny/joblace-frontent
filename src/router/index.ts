@@ -50,6 +50,10 @@ const routes: Array<RouteRecordRaw> = [
     path: '/buscar',
     component: () => import('../views/BuscarOfertas.vue')
   },
+  {
+    path: '/notifications',
+    component: () => import('../views/NotificationsPage.vue')
+  },
 ]
 
 const router = createRouter({
