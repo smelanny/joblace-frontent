@@ -16,7 +16,7 @@ const routes: Array<RouteRecordRaw> = [
   },
   {
     path: '/job/:id',
-    component: () => import('../views/JobDetailPage.vue')
+    component: () => import('../views/JobDetail.vue')
   },
   {
     path: '/company',
@@ -33,7 +33,27 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/publicar-puesto',
     component: () => import('../views/PublicarPuesto.vue')
-  }
+  },
+  {
+    path: '/candidato-setup',
+    component: () => import('../views/CandidatoSetup.vue')
+  },
+  {
+    path: '/empresa/postulaciones',
+    component: () => import('../views/PostulacionesEmpresa.vue')
+  },
+  {
+    path: '/empresa/postulaciones/:id',
+    component: () => import('../views/DetallePostulacion.vue')
+  },
+  {
+    path: '/buscar',
+    component: () => import('../views/BuscarOfertas.vue')
+  },
+  {
+    path: '/notifications',
+    component: () => import('../views/NotificationsPage.vue')
+  },
 ]
 
 const router = createRouter({

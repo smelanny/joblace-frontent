@@ -220,7 +220,7 @@ onMounted(async () => {
   background: #f7f8fa;
 }
 .publicar-btn {
-  background: #1566d6;
+  background: #1566c3;
   color: #fff;
   font-weight: bold;
   letter-spacing: 1px;
